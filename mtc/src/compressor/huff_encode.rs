@@ -22,7 +22,7 @@ fn create_huff_encode_node(g_symbol: char, g_freq: double, g_is_leaf: u32) -> hu
 
 
 // function used to insert a node into priority queue
-fn insert_huff_pqueue(HEncodeNode* node, HEncodeNode** q_head) { //HEncodeNode*  for node and HEncodeNode** for head.
+fn insert_huff_pqueue(node: huff_decode_node, q_head: huff_decode_node) { //HEncodeNode*  for node and HEncodeNode** for head.
 	println!("inserting node: ({}, {})\n", node.symbol, node.freq);
 	if (*q_head == NULL) { // when the pqueue is empty
 		*q_head = node;
@@ -49,7 +49,7 @@ fn insert_huff_pqueue(HEncodeNode* node, HEncodeNode** q_head) { //HEncodeNode* 
 
 
 // function used to display the priority queue
-fn disp_huff_pqueue(HEncodeNode* q_head) {
+fn disp_huff_pqueue(q_head: huff_decode_node) {
 	printf("priority queue: ");
 	while (q_head) {
 		println!("({}, {}),", q_head.symbol, q_head.freq);
@@ -60,7 +60,7 @@ fn disp_huff_pqueue(HEncodeNode* q_head) {
 
 
 // functions used to pop element from pqueue
-HEncodeNode* pop_huff_pqueue(HEncodeNode** q_head) {
+fn pop_huff_pqueue(q_head: huff_decode_node) -> huff_decode_node {// q_head was **, return value was HEncodeNode*
 	if (*q_head == NULL) return NULL;
 	HEncodeNode* p_node = *q_head;
 	*q_head = (*q_head)->next;
@@ -72,7 +72,7 @@ HEncodeNode* pop_huff_pqueue(HEncodeNode** q_head) {
 // functions used to generate codebook recursively
 // codebook: char [HUFF_MAX_SYMBOLS][HUFF_MAX_LEN]
 // here we use 1st order pointer 
-fn generate_huff_codebook(HEncodeNode* root, int depth, char* codebook) {
+fn generate_huff_codebook(root: huff_decode_node, int depth, char* codebook) {
 	if (root->is_leaf) { // we reach the bottom of the encode tree
 		int len = depth;
 		char symbol = root->symbol;
@@ -104,7 +104,7 @@ fn generate_huff_codebook(HEncodeNode* root, int depth, char* codebook) {
 // functions used to write codebook into file
 // codebook:  char [HUFF_MAX_SYMBOLS][HUFF_MAX_LEN]
 // here we use 1st order pointer 
-fn write_huff_codebook(FILE* f_out, char* codebook) {
+fn write_huff_codebook(f_out: File , char* codebook) {
 	let mut i = 0;
 	for (i = 0; i < HUFF_MAX_SYMBOLS; i++) { //change to in range
 		if (*(codebook + i * HUFF_MAX_LEN)) { // when the strcode of symbol char i is not empty
@@ -116,7 +116,7 @@ fn write_huff_codebook(FILE* f_out, char* codebook) {
 // functions used to write encoded bit stream into file
 // codebook: char [HUFF_MAX_SYMBOLS][HUFF_MAX_LEN]
 // here we use 1st order pointer like &codebook[0][0]
-fn write_huff_encode_stream(FILE* f_out, char* str, char* codebook) {
+fn write_huff_encode_stream(f_out: File , char* str, char* codebook) {
 	while (*str) {
 		fprintf(f_out, "%s", codebook + (size_t)(*str) * HUFF_MAX_LEN);
 		str++;
@@ -199,7 +199,7 @@ fn build_huff_encode_tree256(double* freq_arr, size_t len, HEncodeNode** q_head)
 
 
 // functions used to write encoded file when reading from original file
-fn write_huff_encode_stream_from_file(FILE* f_in, FILE* f_out, char* codebook) {
+fn write_huff_encode_stream_from_file(f_in: File , f_out: File, char* codebook) {
 	char c;
 	while (!feof(f_in)) {
 		// fscanf_s(f_in, "%c", &c, 1);
@@ -210,7 +210,7 @@ fn write_huff_encode_stream_from_file(FILE* f_in, FILE* f_out, char* codebook) {
 }
 
 // function used to count ASCII characters 
-fn huff_count_char(double* freq_arr, FILE* f_in, size_t len) {
+fn huff_count_char(double* freq_arr, f_in: File , size_t len) {
 	let HUFF_MAX_SYMBOLS = 256;
 	assert(len == 256 && len <= HUFF_MAX_SYMBOLS);
 	char c;
